@@ -3,11 +3,12 @@ import sys
 import argparse
 
 import torch
+import torch.nn as nn
 import numpy as np
 
 import transformers
-from transformers import GenerationConfig, LlamaForCausalLM, LlamaTokenizer
-from transformers.activations import SiLUActivation
+from transformers import GenerationConfig, LlamaForCausalLM, LlamaTokenizer, AutoTokenizer, AutoModelForCausalLM
+#from transformers.activations import SiLUActivation #nn.SiLU instead
 
 from ptflops import get_model_complexity_info
 from ptflops.pytorch_ops import bn_flops_counter_hook, pool_flops_counter_hook
@@ -46,8 +47,8 @@ def rmsnorm_flops_counter_hook(module, input, output):
 
 def main(args):
     if args.model_type == 'pretrain':
-        tokenizer = LlamaTokenizer.from_pretrained(args.base_model)
-        model = LlamaForCausalLM.from_pretrained(
+        tokenizer = AutoTokenizer.from_pretrained(args.base_model)
+        model = AutoModelForCausalLM.from_pretrained(
             args.base_model,
             low_cpu_mem_usage=True if torch_version >=9 else False
         )
@@ -71,7 +72,7 @@ def main(args):
                                                     custom_modules_hooks={
                                                         LlamaAttention: LlamaAttention_counter_hook,
                                                         LlamaRMSNorm: rmsnorm_flops_counter_hook,
-                                                        SiLUActivation: pool_flops_counter_hook,
+                                                        nn.SiLU: pool_flops_counter_hook,
                                                     },)
     else:
         model.float()
@@ -81,7 +82,7 @@ def main(args):
                                                     custom_modules_hooks={
                                                         LlamaAttention: LlamaAttention_counter_hook,
                                                         LlamaRMSNorm: rmsnorm_flops_counter_hook,
-                                                        SiLUActivation: pool_flops_counter_hook,
+                                                        nn.SiLU: pool_flops_counter_hook,
                                                     },)
 
     print('{:<30}  {:<8}'.format('Computational complexity: ', macs))

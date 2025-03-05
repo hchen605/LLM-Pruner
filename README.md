@@ -1,3 +1,11 @@
+
+The repo is forked from [LLM-Pruner](https://github.com/horseee/LLM-Pruner) as the fundation of my structural pruning + quantization experiments.    
+
+## Updates  
+`testspeed.py` is updated to fit in newer library version.    
+
+
+## original readme
 <p align="center">
 <img src="figures/logo.png" width="20%"> <br>
 </p>

@@ -19,6 +19,14 @@ from LLMPruner.utils.logger import LoggerWithDepth
 from LLMPruner.evaluator.ppl import PPLMetric
 from LLMPruner.datasets.example_samples import get_examples
 from LLMPruner.templates.prompts import prompts
+import ssl
+import aiohttp
+import certifi
+
+#ssl_context = ssl.create_default_context(cafile=certifi.where())
+# Disable SSL verification for dataset downloading
+ssl._create_default_https_context = ssl._create_unverified_context
+
 
 def set_random_seed(seed):
     random.seed(seed)
@@ -65,8 +73,10 @@ def main(args):
                 result = tokenizer.decode(generation_output[0])
                 logger.log(result)
     
-        ppl = PPLMetric(model, tokenizer, ['wikitext2', 'ptb'], args.max_seq_len, device=args.eval_device)
+        #ppl = PPLMetric(model, tokenizer, ['wikitext2', 'ptb'], args.max_seq_len, device=args.eval_device)
+        ppl = PPLMetric(model, tokenizer, ['wikitext2'], args.max_seq_len, device=args.eval_device)
         logger.log("PPL before pruning: {}".format(ppl))
+        logger.log("Memory Requirement: {} MiB\n".format(torch.cuda.memory_allocated()/1024/1024))
 
     model.to(args.device)
 
@@ -271,7 +281,8 @@ def main(args):
         
         logger.log("\n==================Finish================\n")
     
-    ppl = PPLMetric(model, tokenizer, ['wikitext2', 'ptb'], args.max_seq_len, device=args.eval_device)
+    #ppl = PPLMetric(model, tokenizer, ['wikitext2', 'ptb'], args.max_seq_len, device=args.eval_device)
+    ppl = PPLMetric(model, tokenizer, ['wikitext2'], args.max_seq_len, device=args.eval_device)
     logger.log("PPL after pruning: {}".format(ppl))
     logger.log("Memory Requirement: {} MiB\n".format(torch.cuda.memory_allocated()/1024/1024))
 
